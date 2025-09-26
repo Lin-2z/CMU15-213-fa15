@@ -180,7 +180,27 @@ int tmin(void) {
  *   Rating: 1
  */
 int isTmax(int x) {
-  return 2;
+  /*
+   * 思路:
+   * 1. 最大的补码数 Tmax (0x7FFF...) 有一个特性: Tmax + 1 == ~Tmax (两者都等于Tmin)。
+   *    这个条件可以用 !((x + 1) ^ (~x)) 来判断。
+   *
+   * 2. 但是，当 x = -1 (0xFFFF...) 时，上述条件也成立: (-1 + 1) == 0, ~(-1) == 0。
+   *    所以我们需要排除 x = -1 的情况。
+   *
+   * 3. 区分 Tmax 和 -1：
+   *    当 x = Tmax 时，x + 1 = Tmin (非零)。
+   *    当 x = -1 时，x + 1 = 0 (零)。
+   *    我们可以用 !!(x + 1) 来检查 x + 1 是否非零。
+   *    如果 x = Tmax, !!(x+1) 是 1。
+   *    如果 x = -1, !!(x+1) 是 0。
+   *
+   * 4. 将两个条件用 & 连接，即可得到最终结果。
+   */
+  int is_tmax_or_neg1 = !((x + 1) ^ ~x);
+  int is_not_neg1 = !!(x + 1);
+  
+  return is_tmax_or_neg1 & is_not_neg1;
 }
 /* 
  * allOddBits - return 1 if all odd-numbered bits in word set to 1
