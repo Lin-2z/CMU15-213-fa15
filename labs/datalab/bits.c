@@ -143,7 +143,20 @@ NOTES:
  *   Rating: 1
  */
 int bitXor(int x, int y) {
-  return 2;
+  /*
+   * 思路：x ^ y 等价于 (x | y) & ~(x & y)
+   * 其中，根据德摩根定律, x | y 等价于 ~(~x & ~y)
+   * 因此，最终表达式为 ~(~x & ~y) & ~(x & y)
+   */
+
+  // 计算 x | y 的部分: ~(~x & ~y)
+  int or_xy = ~(~x & ~y);
+
+  // 计算 ~(x & y) 的部分
+  int nand_xy = ~(x & y);
+
+  // 将两部分结果相与
+  return or_xy & nand_xy;
 }
 /* 
  * tmin - return minimum two's complement integer 
