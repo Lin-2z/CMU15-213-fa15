@@ -241,7 +241,13 @@ int allOddBits(int x) {
  *   Rating: 2
  */
 int negate(int x) {
-  return 2;
+  /*
+   * 思路：
+   * 根据二进制补码的定义，一个数 x 的相反数 -x 等于对 x 按位取反后再加 1。
+   * 这个规则是补码算术的基础。
+   * 例如，-x = (~x) + 1
+   */
+  return ~x + 1;
 }
 //3
 /* 
