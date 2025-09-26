@@ -211,7 +211,27 @@ int isTmax(int x) {
  *   Rating: 2
  */
 int allOddBits(int x) {
-  return 2;
+  /*
+   * 思路:
+   * 1. 创建一个掩码 mask，它的所有奇数位都是1，偶数位都是0。
+   *    这个掩码就是 0xAAAAAAAA。
+   * 2. 由于不能使用大常量，我们从 0xAA 开始构造这个掩码：
+   *    a. 先构造 16 位的 0xAAAA: (0xAA << 8) | 0xAA
+   *    b. 再构造 32 位的 0xAAAAAAAA: (0xAAAA << 16) | 0xAAAA
+   * 3. 如果 x 的所有奇数位都为1，那么 (x & mask) 的结果应该等于 mask。
+   * 4. 使用异或来判断相等： !((x & mask) ^ mask)
+   */
+
+  // 构造掩码 0xAAAAAAAA
+  int mask = 0xAA;
+  mask = (mask << 8) | mask;
+  mask = (mask << 16) | mask;
+
+  // 提取 x 的奇数位
+  int odd_bits_of_x = x & mask;
+  
+  // 判断提取出的位是否和掩码完全相同
+  return !(odd_bits_of_x ^ mask);
 }
 /* 
  * negate - return -x 
