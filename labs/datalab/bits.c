@@ -227,11 +227,8 @@ int allOddBits(int x) {
   mask = (mask << 8) | mask;
   mask = (mask << 16) | mask;
 
-  // 提取 x 的奇数位
-  int odd_bits_of_x = x & mask;
-  
-  // 判断提取出的位是否和掩码完全相同
-  return !(odd_bits_of_x ^ mask);
+  // 判断 x 的奇数位是否和掩码完全相同
+  return !((x & mask) ^ mask);
 }
 /* 
  * negate - return -x 
@@ -444,43 +441,34 @@ int howManyBits(int x) {
    *    有符号数x所需的位数 = (n的无符号位数) + 1 (用于符号位)。
    */
   
-  int sign, n, bits, b16, b8, b4, b2, b1;
+  int sign, n, bits;
+  int b16, b8, b4, b2, b1;
 
   // 步骤1: 统一正负数
   sign = x >> 31;
   n = x ^ sign;
 
   // 步骤2: 二进制搜索计算 n 的无符号位数
-  // bX表示在高X位部分是否有1
   b16 = !!(n >> 16);
-  // shiftX表示如果高位有1，我们需要移动的位数
-  int shift16 = b16 << 4; // b16是0或1，所以结果是0或16
-  n >>= shift16;
+  n >>= (b16 << 4);
   
   b8 = !!(n >> 8);
-  int shift8 = b8 << 3; // 0或8
-  n >>= shift8;
+  n >>= (b8 << 3);
   
   b4 = !!(n >> 4);
-  int shift4 = b4 << 2; // 0或4
-  n >>= shift4;
+  n >>= (b4 << 2);
   
   b2 = !!(n >> 2);
-  int shift2 = b2 << 1; // 0或2
-  n >>= shift2;
+  n >>= (b2 << 1);
   
   b1 = !!(n >> 1);
-  int shift1 = b1; // 0或1
-  n >>= shift1;
+  n >>= b1;
   
-  // n现在只剩下最高位，值为0或1。
-  // bits是之前所有移位的总和。
-  bits = shift16 + shift8 + shift4 + shift2 + shift1 + n;
+  bits = (b16 << 4) + (b8 << 3) + (b4 << 2) + (b2 << 1) + b1 + n;
   
-  // 步骤3: 最终结果是 n 的无符号位数 + 1
+  // 步骤3: 最终结果是 n 的无符号位数 + 1 (符号位)
   return bits + 1;
-}
-//float
+}//float
 /* 
  * floatScale2 - Return bit-level equivalent of expression 2*f for
  *   floating point argument f.
@@ -552,9 +540,12 @@ int floatFloat2Int(unsigned uf) {
   unsigned sign = (uf >> 31);
   int exp = ((uf >> 23) & 0xFF);
   unsigned frac = (uf & 0x007FFFFF);
+  int e;
+  unsigned full_frac;
+  int result;
 
   // 真实指数
-  int e = exp - 127;
+  e = exp - 127;
   
   // 情况1：NaN 或 Infinity
   if (exp == 0xFF) {
@@ -575,8 +566,7 @@ int floatFloat2Int(unsigned uf) {
 
   // 情况4：正常转换
   // 构造完整的 1.M 形式
-  unsigned full_frac = (1 << 23) | frac;
-  int result;
+  full_frac = (1 << 23) | frac;
 
   // 根据指数移位
   if (e > 23) {
@@ -609,6 +599,7 @@ int floatFloat2Int(unsigned uf) {
 unsigned floatPower2(int x) {
   // 偏置值
   int bias = 127;
+  int exp;
   
   // 情况 1: x 过大，结果为 +Infinity
   // exp = x + 127, exp_max_norm = 254. x + 127 > 254 => x > 127
@@ -635,6 +626,6 @@ unsigned floatPower2(int x) {
   
   // 情况 4: 结果是规格化数
   // 范围是 -126 <= x <= 127
-  int exp = x + bias;
+  exp = x + bias;
   return exp << 23;
 }
