@@ -358,8 +358,9 @@ int isLessOrEqual(int x, int y) {
 
   // case 1: 符号不同 (diff_sign_check 为 0xFFFFFFFF 或 0x0)
   int diff_sign_check = sign_x ^ sign_y;
-  // 此时结果取决于x是否为负数 (sign_x)。如果x负，返回1。
-  int diff_sign_result = diff_sign_check & sign_x;
+  // 此时结果取决于x是否为负数 (sign_x)。如果x负(sign_x=-1)，返回1。
+  // sign_x & 1 会将 -1 转换为 1，0 转换为 0。
+  int diff_sign_result = diff_sign_check & (sign_x & 1);
 
   // case 2: 符号相同 (same_sign_check 为 0xFFFFFFFF 或 0x0)
   int same_sign_check = ~diff_sign_check;
