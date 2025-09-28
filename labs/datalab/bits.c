@@ -606,5 +606,34 @@ int floatFloat2Int(unsigned uf) {
  *   Rating: 4
  */
 unsigned floatPower2(int x) {
-    return 2;
+  // 偏置值
+  int bias = 127;
+  
+  // 情况 1: x 过大，结果为 +Infinity
+  // exp = x + 127, exp_max_norm = 254. x + 127 > 254 => x > 127
+  if (x > 127) {
+    // S=0, exp=0xFF, frac=0
+    return 0x7F800000;
+  }
+  
+  // 情况 2: x 过小，结果为 0
+  // denorm 最小指数是 1-127-23 = -149. x < -149
+  if (x < -149) {
+    return 0;
+  }
+  
+  // 情况 3: 结果是非规格化数
+  // exp_min_norm = 1. x + 127 < 1 => x < -126
+  // 所以范围是 -149 <= x <= -127
+  if (x < -126) {
+    // exp = 0
+    // frac = 1 << (x + 149)
+    // 1 << (x + 126 + 23)
+    return 1 << (x + 149);
+  }
+  
+  // 情况 4: 结果是规格化数
+  // 范围是 -126 <= x <= 127
+  int exp = x + bias;
+  return exp << 23;
 }
