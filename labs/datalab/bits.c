@@ -492,7 +492,48 @@ int howManyBits(int x) {
  *   Rating: 4
  */
 unsigned floatScale2(unsigned uf) {
-  return 2;
+  /*
+   * 思路:
+   * 1. 解析浮点数的三个部分：符号(sign), 阶码(exp), 尾数(frac)。
+   * 2. 根据阶码的值分情况讨论：
+   *    a. 特殊值 (exp == 0xFF): 无穷大或NaN。乘以2不变，直接返回原值。
+   *    b. 非规格化数 (exp == 0): 值 = (-1)^s * 0.frac * 2^(-126)。
+   *       乘以2相当于尾数左移一位 (frac << 1)。阶码不变。
+   *    c. 规格化数 (0 < exp < 0xFF): 值 = (-1)^s * 1.frac * 2^(exp - 127)。
+   *       乘以2相当于阶码加1 (exp + 1)。
+   *       需要特别检查：如果 exp+1 后等于 0xFF，说明结果溢出为无穷大，此时
+   *       新的阶码应为 0xFF, 尾数应为0。
+   * 3. 根据不同情况，重新组合三部分并返回。
+   */
+
+  // 1. 解析三部分
+  unsigned sign = uf & 0x80000000; // 保留符号位，方便后面组合
+  unsigned exp = (uf >> 23) & 0xFF;
+  unsigned frac = uf & 0x7FFFFF;
+
+  // 2a. 特殊值 (无穷大或NaN)
+  if (exp == 0xFF) {
+    return uf;
+  }
+
+  // 2b. 非规格化数
+  if (exp == 0) {
+    // 尾数左移一位。符号位和阶码不变。
+    return sign | (frac << 1);
+  }
+
+  // 2c. 规格化数
+  // 阶码加1
+  exp++;
+  
+  // 检查是否溢出为无穷大
+  if (exp == 0xFF) {
+    // 溢出，返回无穷大（尾数清零）
+    return sign | 0x7F800000; // 0x7F800000是符号位0的无穷大
+  } else {
+    // 未溢出，正常组合
+    return sign | (exp << 23) | frac;
+  }
 }
 /* 
  * floatFloat2Int - Return bit-level equivalent of expression (int) f
