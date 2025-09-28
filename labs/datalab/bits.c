@@ -381,7 +381,39 @@ int isLessOrEqual(int x, int y) {
  *   Rating: 4 
  */
 int logicalNeg(int x) {
-  return 2;
+  /*
+   * 思路:
+   * 目标是找到一个运算，能区分 0 和所有非零数。
+   *
+   * 1. 观察一个数 x 和它的相反数 -x 的符号位。
+   *    -x 可以通过 ~x + 1 计算。
+   *
+   * 2. 对于任何非零数 x (除了 Tmin)，x 和 -x 的符号位是不同的。
+   *    一个为正(符号位0)，一个为负(符号位1)。
+   *    所以 x | -x 的结果，其符号位必然是1。
+   *
+   * 3. 对于 x = 0，x 和 -x 都是0，所以 x | -x 的结果是0，符号位是0。
+   *
+   * 4. 对于 x = Tmin, x 和 -x 都是 Tmin，所以 x | -x 的结果是 Tmin，符号位是1。
+   *
+   * 5. 综上，(x | -x) 的符号位：
+   *    - 当 x = 0 时，为 0。
+   *    - 当 x != 0 时，为 1。
+   *
+   * 6. 我们可以通过右移31位来提取这个符号位。
+   *    (x | (~x + 1)) >> 31 的结果：
+   *      - 如果 x = 0, 结果是 0。
+   *      - 如果 x != 0, 结果是 -1 (0xFFFFFFFF)。
+   *
+   * 7. 最后，我们对这个结果加 1，即可得到目标：
+   *      - 0 + 1 = 1
+   *      - -1 + 1 = 0
+   */
+  
+  int negX = ~x + 1;
+  int sign = (x | negX) >> 31;
+  
+  return sign + 1;
 }
 /* howManyBits - return the minimum number of bits required to represent x in
  *             two's complement
