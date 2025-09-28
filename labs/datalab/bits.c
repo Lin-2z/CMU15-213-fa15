@@ -329,7 +329,47 @@ int conditional(int x, int y, int z) {
  *   Rating: 3
  */
 int isLessOrEqual(int x, int y) {
-  return 2;
+  /*
+   * 思路:
+   * 核心是判断 y - x >= 0。但 y - x 会导致溢出，需要分情况讨论。
+   *
+   * 1. 获取 x 和 y 的符号位 (0为正, 1为负)
+   *    sign_x = x >> 31;
+   *    sign_y = y >> 31;
+   *
+   * 2. 情况一：x 和 y 符号不同
+   *    - 如果 x 负 y 正 (sign_x=1, sign_y=0)，则 x <= y 必然成立。
+   *    - 如果 x 正 y 负 (sign_x=0, sign_y=1)，则 x <= y 必然不成立。
+   *    - 在这种情况下，结果完全取决于 x 的符号位。
+   *    - 符号不同的条件是 sign_x ^ sign_y 不为0。
+   *
+   * 3. 情况二：x 和 y 符号相同
+   *    - 此时 y - x 不会溢出。
+   *    - 我们可以安全地计算 y - x 的符号位来判断大小。
+   *    - y - x >= 0 的条件是 (y + ~x + 1) 的符号位为0。
+   *    - 符号相同的条件是 !(sign_x ^ sign_y)。
+   *
+   * 4. 组合结果
+   *    (符号不同 AND x是负数) OR (符号相同 AND (y-x)是非负数)
+   */
+
+  int sign_x = x >> 31;
+  int sign_y = y >> 31;
+
+  // case 1: 符号不同 (diff_sign_check 为 0xFFFFFFFF 或 0x0)
+  int diff_sign_check = sign_x ^ sign_y;
+  // 此时结果取决于x是否为负数 (sign_x)。如果x负，返回1。
+  int diff_sign_result = diff_sign_check & sign_x;
+
+  // case 2: 符号相同 (same_sign_check 为 0xFFFFFFFF 或 0x0)
+  int same_sign_check = ~diff_sign_check;
+  // 计算 y-x 的符号位
+  int diff = y + (~x + 1);
+  int diff_sign = diff >> 31;
+  // 如果 y-x 非负，diff_sign为0，!diff_sign为1。
+  int same_sign_result = same_sign_check & !diff_sign;
+
+  return diff_sign_result | same_sign_result;
 }
 //4
 /* 
