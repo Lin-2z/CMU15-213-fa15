@@ -295,7 +295,31 @@ int isAsciiDigit(int x) {
  *   Rating: 3
  */
 int conditional(int x, int y, int z) {
-  return 2;
+  /*
+   * 思路：利用位掩码进行选择。
+   * 目标是构造一个掩码 mask，当 x!=0 时为全1(0xFFFFFFFF)，当 x==0 时为全0。
+   *
+   * 1. 将 x 转换为逻辑值:
+   *    !x  ->  如果 x!=0, 结果是0; 如果 x==0, 结果是1。
+   *
+   * 2. 将逻辑值转换为掩码:
+   *    我们知道 -1 的补码表示是全1 (0xFFFFFFFF)。
+   *    !x + ~0  (等价于 !x - 1):
+   *      - 如果 x!=0: 0 + (-1) = -1 (0xFFFFFFFF)
+   *      - 如果 x==0: 1 + (-1) = 0  (0x00000000)
+   *    这个结果 mask 正好是我们需要的。
+   *
+   * 3. 使用掩码选择 y 或 z:
+   *    (y & mask) | (z & ~mask)
+   *      - 如果 mask 是全1, 结果是 y。
+   *      - 如果 mask 是全0, 结果是 z。
+   */
+
+  // 构造掩码。~0 是 -1
+  int mask = !x + ~0;
+  
+  // 使用掩码选择
+  return (y & mask) | (z & ~mask);
 }
 /* 
  * isLessOrEqual - if x <= y  then return 1, else return 0 
