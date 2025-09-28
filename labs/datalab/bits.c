@@ -548,7 +548,49 @@ unsigned floatScale2(unsigned uf) {
  *   Rating: 4
  */
 int floatFloat2Int(unsigned uf) {
-  return 2;
+  unsigned sign = (uf >> 31);
+  int exp = ((uf >> 23) & 0xFF);
+  unsigned frac = (uf & 0x007FFFFF);
+
+  // 真实指数
+  int e = exp - 127;
+  
+  // 情况1：NaN 或 Infinity
+  if (exp == 0xFF) {
+    return 0x80000000u;
+  }
+  
+  // 情况2：指数过小 (绝对值 < 1.0)
+  // 包括零、非规格化数
+  if (e < 0) {
+    return 0;
+  }
+
+  // 情况3：指数过大 (溢出)
+  // int 最多31位有效数值位
+  if (e >= 31) {
+    return 0x80000000u;
+  }
+
+  // 情况4：正常转换
+  // 构造完整的 1.M 形式
+  unsigned full_frac = (1 << 23) | frac;
+  int result;
+
+  // 根据指数移位
+  if (e > 23) {
+    result = full_frac << (e - 23);
+  } else {
+    // e <= 23, 右移截断小数部分
+    result = full_frac >> (23 - e);
+  }
+
+  // 应用符号
+  if (sign) {
+    return -result;
+  } else {
+    return result;
+  }
 }
 /* 
  * floatPower2 - Return bit-level equivalent of the expression 2.0^x
