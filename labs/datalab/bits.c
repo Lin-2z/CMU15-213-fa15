@@ -260,7 +260,32 @@ int negate(int x) {
  *   Rating: 3
  */
 int isAsciiDigit(int x) {
-  return 2;
+  /*
+   * 思路:
+   * 将 0x30 <= x <= 0x39 分解为两个条件：
+   * 1. x >= 0x30  (等价于 x - 0x30 >= 0)
+   * 2. x <= 0x39  (等价于 0x39 - x >= 0)
+   * 
+   * 使用补码来模拟减法 a - b = a + (~b + 1)。
+   * 使用右移和逻辑非来判断一个数是否 >= 0。
+   * 如果 num >= 0, 它的符号位是0, (num >> 31) 的结果是0, !(0) 是1。
+   * 如果 num < 0, 它的符号位是1, (num >> 31) 的结果是-1, !(-1) 是0。
+   */
+
+  // 检查 x >= 0x30
+  // 计算 x - 0x30
+  int lower_bound_check = x + (~0x30 + 1);
+  // 检查 x - 0x30 是否为非负数
+  int is_ge_30 = !(lower_bound_check >> 31);
+
+  // 检查 x <= 0x39
+  // 计算 0x39 - x
+  int upper_bound_check = 0x39 + (~x + 1);
+  // 检查 0x39 - x 是否为非负数
+  int is_le_39 = !(upper_bound_check >> 31);
+  
+  // 两个条件必须同时满足
+  return is_ge_30 & is_le_39;
 }
 /* 
  * conditional - same as x ? y : z 
